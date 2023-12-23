@@ -18,7 +18,7 @@ export default function Select({ options, handleChange, name, fieldKey }) {
       <option value="" disabled>
         {name}
       </option>
-      {options.map((optionData) => (
+      {options?.map((optionData) => (
         <option key={optionData.name} value={optionData.name}>
           {optionData.name}
         </option>
