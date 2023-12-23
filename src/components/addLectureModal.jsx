@@ -1,42 +1,74 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Input } from "./ui/input";
 import Modal from "./ui/modal";
+import Select from "./ui/select";
 
 export default function AddLectureModal({
   handleToggleModal,
   handleSetLectureList,
   handleConflect,
-  isConflect,
 }) {
-  const [newLecutre, setNewLecture] = useState({
+  const [newLecture, setNewLecture] = useState({
     title: "",
     instructor: "",
     date: new Date(),
     time: new Date().getTime(),
     hall: "",
-    instruments: "",
+    course: "",
     note: "",
   });
 
+  const [formSelectData, setFormSelectData] = useState({
+    rooms: [],
+    tutors: [],
+    courses: [],
+  });
+
   const handleInputChange = (key, value) => {
-    setNewLecture({
-      ...newLecutre,
-      [key]: value,
-    });
+    if (key === "tutors") {
+      // Handle tutor selection separately to update formSelectData
+      setFormSelectData({
+        ...formSelectData,
+        tutors: value,
+      });
+    } else {
+      setNewLecture({
+        ...newLecture,
+        [key]: value,
+      });
+    }
   };
 
+  useEffect(() => {
+    const roomsString = localStorage.getItem("roomData");
+    const tutorsString = localStorage.getItem("tutorData");
+    const coursesString = localStorage.getItem("courseData");
+    const rooms = JSON.parse(roomsString);
+    const tutors = JSON.parse(tutorsString);
+    const courses = JSON.parse(coursesString);
+    setFormSelectData({
+      rooms,
+      courses,
+      tutors,
+    });
+  }, []);
+
   const checkAvailability = (lectures, newLecture) => {
+    console.log(lectures);
+    if (lectures.length === 0) return false;
     for (const lecture of lectures) {
       if (lecture.hall.toLowerCase() === newLecture.hall.toLowerCase()) {
         if (lecture.date === newLecture.date) {
-          return true; // Conflict on the same date
+          if (
+            lecture.time === newLecture.time ||
+            lecture.time - newLecture.time < 2 ||
+            newLecture.time - lecture.time < 2
+          ) {
+            return true; // Conflict on the same time or within 2 hours
+          }
         }
-        if (
-          lecture.time === newLecture.time ||
-          lecture.time - newLecture.time < 2
-        ) {
-          return true; // Conflict on the same time or within 2 hours
-        }
+      } else {
+        return false;
       }
     }
     return false; // No conflicts found
@@ -49,25 +81,28 @@ export default function AddLectureModal({
     const lectures = JSON.parse(localStorage.getItem("lectures")) || [];
 
     // Add the new lecture to the array
-    const newLectureData = { ...newLecutre };
-    lectures.push(newLectureData);
 
-    if (checkAvailability(lectures, newLecutre)) return handleConflect();
+    if (checkAvailability(lectures, newLecture)) {
+      return handleConflect();
+    } else {
+      const newLectureData = { ...newLecture };
+      lectures.push(newLectureData);
+      localStorage.setItem("lectures", JSON.stringify(lectures));
+      handleSetLectureList(newLectureData);
+      // Reset the form after saving
+      setNewLecture({
+        title: "",
+        instructor: "",
+        date: new Date(),
+        time: new Date().getTime(),
+        hall: "",
+        instruments: "",
+      });
+      handleToggleModal();
+    }
     // Save the updated array back to localStorage
-    localStorage.setItem("lectures", JSON.stringify(lectures));
-    handleSetLectureList(newLectureData);
-    // Reset the form after saving
-    setNewLecture({
-      title: "",
-      instructor: "",
-      date: new Date(),
-      time: new Date().getTime(),
-      hall: "",
-      instruments: "",
-    });
 
     // Close the modal
-    handleToggleModal();
   };
 
   return (
@@ -90,23 +125,22 @@ export default function AddLectureModal({
             <Input
               onChange={(e) => handleInputChange(e.target.name, e.target.value)}
               name="title"
-              value={newLecutre.title}
+              value={newLecture.title}
               placeholder="Lecture title"
               required
             />
-            <Input
-              onChange={(e) => handleInputChange(e.target.name, e.target.value)}
-              name="instructor"
-              value={newLecutre.instructor}
-              placeholder="Instructor name"
-              required
+            <Select
+              options={formSelectData.tutors}
+              handleChange={handleInputChange}
+              name="Select a Tutor"
+              fieldKey="instructor"
             />
           </div>
           <div className="flex gap-2 w-full">
             <Input
               onChange={(e) => handleInputChange(e.target.name, e.target.value)}
               name="date"
-              value={newLecutre.date}
+              value={newLecture.date}
               placeholder="Date"
               type="date"
               required
@@ -114,32 +148,31 @@ export default function AddLectureModal({
             <Input
               onChange={(e) => handleInputChange(e.target.name, e.target.value)}
               name="time"
-              value={newLecutre.time}
+              value={newLecture.time}
               placeholder="Date"
               type="time"
               required
             />
           </div>
           <div className="flex gap-2 w-full">
-            <Input
-              onChange={(e) => handleInputChange(e.target.name, e.target.value)}
-              name="hall"
-              value={newLecutre.hall}
-              placeholder="Lecture hall"
-              required
+            <Select
+              options={formSelectData.rooms}
+              handleChange={handleInputChange}
+              name="Select a Room"
+              fieldKey="hall"
             />
-            <Input
-              onChange={(e) => handleInputChange(e.target.name, e.target.value)}
-              name="instruments"
-              value={newLecutre.instruments}
-              placeholder="Instruments"
+            <Select
+              options={formSelectData.courses}
+              handleChange={handleInputChange}
+              name="Select a Course"
+              fieldKey="course"
             />
           </div>
           <textarea
             onChange={(e) => handleInputChange("note", e.target.value)}
             className=" max-h-[100px] h-24 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
             placeholder="Notes.."
-            maxLength={20}
+            maxLength={200}
           />
           <button className="relative top-2 bg-[#0A0B0C]  text-white py-2 px-8 rounded-xl text-base">
             Submit

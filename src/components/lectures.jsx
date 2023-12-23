@@ -9,6 +9,11 @@ export default function Lectures() {
     setLectureList((prevList) => [...prevList, data]);
   };
 
+  const handleDeleteLecture = (lecture) => {
+    console.log(lecture, lectureList.filter(l => l.title !== lecture.titl))
+    setLectureList(lectureList.filter(l => l.title !== lecture.title))
+  }
+
   useEffect(() => {
     const lecturesString = localStorage.getItem("lectures");
     const lectureListData = JSON.parse(String(lecturesString));
@@ -25,7 +30,7 @@ export default function Lectures() {
       </header>
       <div className=" w-full gap-2 grid grid-cols-[repeat(auto-fill,minmax(30%,1fr))]">
         {lectureList.map((lecture, index) => (
-          <Lecture key={index} lectureData={lecture} />
+          <Lecture handleDeleteLecture={handleDeleteLecture} key={index} lectureData={lecture} />
         ))}
       </div>
     </div>
