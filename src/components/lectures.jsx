@@ -1,0 +1,33 @@
+import React, { useEffect, useState } from "react";
+import AddNewLecture from "./addNewLecture";
+import Lecture from "./lecture";
+
+export default function Lectures() {
+  const [lectureList, setLectureList] = useState([]);
+
+  const handleSetLectureList = (data) => {
+    setLectureList((prevList) => [...prevList, data]);
+  };
+
+  useEffect(() => {
+    const lecturesString = localStorage.getItem("lectures");
+    const lectureListData = JSON.parse(String(lecturesString));
+    if (lectureListData) {
+      setLectureList(lectureListData);
+    }
+  }, []);
+
+  return (
+    <div className="w-full m-4">
+      <header className="flex justify-between w-full">
+        <h1 className="font-medium text-2xl">Lectures</h1>
+        <AddNewLecture handleSetLectureList={handleSetLectureList} />
+      </header>
+      <div className=" w-full gap-2 grid grid-cols-[repeat(auto-fill,minmax(30%,1fr))]">
+        {lectureList.map((lecture, index) => (
+          <Lecture key={index} lectureData={lecture} />
+        ))}
+      </div>
+    </div>
+  );
+}
