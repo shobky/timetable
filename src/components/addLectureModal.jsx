@@ -54,7 +54,6 @@ export default function AddLectureModal({
   }, []);
 
   const checkAvailability = (lectures, newLecture) => {
-    console.log(lectures);
     if (lectures.length === 0) return false;
     for (const lecture of lectures) {
       if (lecture.hall.toLowerCase() === newLecture.hall.toLowerCase()) {
@@ -100,9 +99,6 @@ export default function AddLectureModal({
       });
       handleToggleModal();
     }
-    // Save the updated array back to localStorage
-
-    // Close the modal
   };
 
   return (
