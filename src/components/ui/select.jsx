@@ -4,7 +4,6 @@ export default function Select({ options, handleChange, name, fieldKey }) {
   const [selectedValue, setSelectedValue] = useState("");
 
   const handleSelectionChange = (e) => {
-    console.log(fieldKey, e.target.value)
     const selectedOption = e.target.value;
     setSelectedValue(selectedOption);
     handleChange(fieldKey, selectedOption);

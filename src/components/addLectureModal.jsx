@@ -53,23 +53,42 @@ export default function AddLectureModal({
     });
   }, []);
 
+  const convertTimeToMinutes = (time) => {
+    const [hours, minutes] = time.split(":").map(Number);
+    return hours * 60 + minutes;
+  };
+
   const checkAvailability = (lectures, newLecture) => {
     if (lectures.length === 0) return false;
+  
+    const newLectureTimeInMinutes = convertTimeToMinutes(newLecture.time);
+  
     for (const lecture of lectures) {
+      console.log(
+        lecture.time,
+        newLecture.time,
+        Math.abs(
+          convertTimeToMinutes(lecture.time) - newLectureTimeInMinutes
+        ),
+        "<==="
+      );
+  
       if (lecture.hall.toLowerCase() === newLecture.hall.toLowerCase()) {
         if (lecture.date === newLecture.date) {
+          // Use Math.abs to get the absolute difference between times
           if (
-            lecture.time === newLecture.time ||
-            lecture.time - newLecture.time < 2 ||
-            newLecture.time - lecture.time < 2
+            Math.abs(
+              convertTimeToMinutes(lecture.time) - newLectureTimeInMinutes
+            ) < 120 // 2 hours in minutes
           ) {
-            return true; // Conflict on the same time or within 2 hours
+            return true; // Conflict within 2 hours
           }
         }
       } else {
         return false;
       }
     }
+  
     return false; // No conflicts found
   };
 
